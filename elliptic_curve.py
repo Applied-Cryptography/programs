@@ -54,7 +54,7 @@ class EllipticCurveModP:
 
         return x, y
 
-    def diff_add(self, p1: Tuple[int, int], p2: Tuple[int ,int]) -> Tuple[int, int]:
+    def diff_add(self, p1: Tuple[int, int], p2: Tuple[int, int]) -> Tuple[int, int]:
         """计算 p1+p2 且 p1 != p2"""
         assert p1 in self.points_set
         assert p2 in self.points_set

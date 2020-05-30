@@ -34,34 +34,35 @@ def find_one_primitive_root(p: int) -> int:
 
 
 def find_all_primitive_root(p: int) -> List[int]:
-    first_yuangen = find_one_primitive_root(p)
+    first_primitive_root = find_one_primitive_root(p)
 
-    yuangen_list = [first_yuangen]
+    primitive_root_list = [first_primitive_root]
     for i in range(2, p):
         if gcd(i, p-1) == 1:
-            new_yuangen = first_yuangen ** i % p
-            logger.info(f"{first_yuangen}^{i} ≡ {new_yuangen}  (mod {p})")
-            yuangen_list.append(new_yuangen)
+            new_primitive_root = first_primitive_root ** i % p
+            logger.info(f"{first_primitive_root}^{i} ≡ {new_primitive_root}  (mod {p})")
+            primitive_root_list.append(new_primitive_root)
 
-    yuangen_list.sort()
-    logger.info(f"p的所有原根是: {yuangen_list}")
+    primitive_root_list.sort()
+    logger.info(f"p的所有原根是: {primitive_root_list}")
 
-    return yuangen_list
+    return primitive_root_list
 
 
-def print_zhibiaobiao(yuangen: int, p: int) -> None:
-    assert yuangen in find_all_primitive_root(p)
+def print_zhibiaobiao(primitive_root: int, p: int) -> None:
+    assert primitive_root in find_all_primitive_root(p)
 
     zhibiaobiao = []
     for i in range(0, p-1):
-        zhibiaobiao.append((i, yuangen ** i % p))
+        zhibiaobiao.append((i, primitive_root ** i % p))
 
     zhibiaobiao.sort(key=lambda x: x[1])
 
     logger.info("指标表：")
     for i, j in zhibiaobiao:
-        logger.info(f"{j} ≡ {yuangen}^{i}  (mod {p})")
+        logger.info(f"{j} ≡ {primitive_root}^{i}  (mod {p})")
 
 
 if __name__ == '__main__':
-    find_all_primitive_root(7)
+    # find_one_primitive_root(41)
+    print_zhibiaobiao(6, 41)

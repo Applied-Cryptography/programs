@@ -6,13 +6,26 @@
 import math
 from typing import List
 
-from utils import extended_euclidean, logger
+from utils import extended_euclidean, logger, reverse_int
 
 from numpy import poly1d
 
 
-def crt(b_list: List[int], m_list: List[int]) -> int:
+def crt(a_list: List[int], b_list: List[int], m_list: List[int]) -> int:
+    """求解形如 a_i * x ≡ b_i  (mod m_i) 的解
+    """
     assert len(b_list) == len(m_list)
+    assert len(a_list) == len(m_list)
+
+    # 化成 x 恒等 b_i  (mod m_i) 的标准形式
+    for index, (a, m) in enumerate(zip(a_list, m_list)):
+        reverse_a = reverse_int(a, m)
+        logger.info(f"{a} 在模 {m} 下的逆为 {reverse_a}")
+        b_list[index] = b_list[index] * reverse_a % m
+
+    logger.info("原方程的标准形式为：")
+    for b, m in zip(b_list, m_list):
+        logger.info(f"x ≡ {b}  (mod {m})")
 
     # 每一个 m_i 必须互相互质
     for i in range(len(m_list)):
@@ -21,14 +34,14 @@ def crt(b_list: List[int], m_list: List[int]) -> int:
                 raise ValueError("m_i 必须互相互质")
 
     m = math.prod(m_list)
-    logger.info(f"M: {m}")
+    logger.info(f"M = {' * '.join(map(str, m_list))} = {m}")
     upper_m_list = [m // i for i in m_list]
     logger.info(f"M_i: {upper_m_list}")
     upper_m_prime_list = [
         extended_euclidean(upper_m_list[i], m_list[i])[0] % m_list[i]
         for i in range(len(upper_m_list))
     ]
-    logger.info(f"M_i': {upper_m_prime_list}")
+    logger.info(f"M'_i: {upper_m_prime_list}")
 
     result = sum([
         b_list[i]*upper_m_list[i]*upper_m_prime_list[i]
@@ -80,11 +93,11 @@ def poly_q_e(poly: List[int], q: int, e: int) -> int:
 
 
 if __name__ == '__main__':
-    # poly_q_e(
-    #     [1, 5, 0, 9],
-    #     3,
-    #     3
-    # )
+    poly_q_e(
+        [1, 0, 0, 7, 1],
+        3,
+        3
+    )
 
-    crt([0, 2, 2, 2, 2], [13, 3, 5 ,7 ,11])
+    crt([5, 87], [4, 16], [11, 61])
 

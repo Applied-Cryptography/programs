@@ -162,5 +162,5 @@ def factor(n: int) -> Dict[int, int]:
 
 
 if __name__ == '__main__':
-    exponentiation_by_squaring(31, 29, 113)
+    print(reverse_int(7, 40))
 
