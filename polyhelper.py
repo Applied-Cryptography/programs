@@ -1,7 +1,8 @@
 from poly import PolyRingModP, DTYPE
 from utils import logger
 
-from typing import Iterable, List
+from typing import Iterable, List, Tuple, Set
+from itertools import product
 
 import numpy as np
 
@@ -37,7 +38,7 @@ def print_poly(poly: List[int], extra_info: str = None, info=True) -> str:
     return poly_str
 
 
-def poly_mod(p: int, poly1: Iterable[int], poly2: Iterable[int]):
+def poly_mod(p: int, poly1: Iterable[int], poly2: Iterable[int], info=True):
     """域 p 上多项式 poly1 模除 poly2
 
     Args:
@@ -51,8 +52,13 @@ def poly_mod(p: int, poly1: Iterable[int], poly2: Iterable[int]):
 
     q, r = PolyRingModP.div(p, p1, p2)
 
-    print_poly(q[::-1], "不完全商")
-    print_poly(r[::-1], "余数")
+    q_str = print_poly(q[::-1], info=False)
+    r_str = print_poly(r[::-1], info=False)
+    p1_str = print_poly(p1[::-1], info=False)
+    p2_str = print_poly(p2[::-1], info=False)
+
+    if info:
+        logger.info(f"{p1_str} = ({p2_str}) * ({q_str}) + {r_str}")
 
     return q[::-1], r[::-1]
 
@@ -107,15 +113,88 @@ def poly_reverse(p: int, poly1: Iterable[int], poly2: Iterable[int]):
     return s[::-1]
 
 
+class IrreduciblePolyModp:
+    """GF(p) 下不可约多项式的判断"""
+    def __init__(self, p=2):
+        # N 必须足够大(运算的多项式次数都在其之内)，保证对计算没有影响
+        # 两个初始的不可约多项式 x, x+1
+        self.p = p
+        self.irreducible_dict = {
+            # 1: [(1, 0), (1, 1)]
+        }
+
+    @staticmethod
+    def _generate_all_n_degree_poly(p: int, n: int) -> Iterable:
+        # 有空的话可以试试自己实现(回溯法应该可以)
+        for poly in product(range(p), repeat=n):
+            yield 1, *poly
+
+    @staticmethod
+    def _check_zero_order_poly(poly: Set[int]) -> bool:
+        degree = len(poly)
+
+        for coef in poly:
+            if coef != 0:
+                break
+            degree -= 1
+
+        return degree <= 1
+
+    def generate_irreducible_poly(self, n):
+        """产生所有的 n 阶不可约多项式"""
+        degree = 1
+        while degree <= n:
+            for poly in self._generate_all_n_degree_poly(self.p, degree):
+                if self._check_zero_order_poly(poly):
+                    continue
+                if self.irreducible_dict.get(degree) and poly in self.irreducible_dict[degree]:
+                    continue
+
+                is_irreducible = True
+                for key, value in self.irreducible_dict.items():
+                    if degree != 1 and key * 2 > degree:
+                        break
+
+                    for irreducible_poly in value:
+                        r = poly_mod(self.p, poly, irreducible_poly, info=False)[1]
+                        if len(r) == 1 and r == 0:
+                            is_irreducible = False
+
+                    if not is_irreducible:
+                        break
+                if is_irreducible:
+                    print_poly(poly, "不可约多项式")
+                    try:
+                        self.irreducible_dict[degree].add(poly)
+                    except KeyError:
+                        self.irreducible_dict[degree] = {poly}
+
+            degree += 1
+
+    def is_irreducible_poly(self, poly: Tuple) -> bool:
+        assert len(poly) >= 2
+
+        self.generate_irreducible_poly(len(poly) // 2)
+
+        for _, value in self.irreducible_dict.items():
+            for irreducible_poly in value:
+                r = poly_mod(self.p, poly, irreducible_poly)[1]
+                if len(r) == 1 and r == 0:
+                    logger.info("该多项式可约")
+                    return False
+
+        logger.info("该多项式不可约")
+        return True
+
+
+
+
+
 # todo
 # 增加求所有的生成元
 
-
 if __name__ == '__main__':
+    test = IrreduciblePolyModp()
 
-    a = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    b = [1, 0, 1, 1, 0, 0, 0]
-    p = [1, 0, 0, 1, 1]
-
-    # poly_reverse(2, a, p)
-    poly_mod(2, a, p)
+    # print(test.is_irreducible_poly((1, 0, 0, 0, 1, 1, 0, 1, 1)))
+    print(test.is_irreducible_poly((1, 1, 0, 1, 1)))

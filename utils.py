@@ -162,5 +162,5 @@ def factor(n: int) -> Dict[int, int]:
 
 
 if __name__ == '__main__':
-    print(reverse_int(7, 40))
+    print(factor(667))
 
