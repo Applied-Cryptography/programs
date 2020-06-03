@@ -1,8 +1,9 @@
 from poly import PolyRingModP, DTYPE
-from utils import logger
+from utils import logger, factor
 
 from typing import Iterable, List, Tuple, Set
 from itertools import product
+from copy import copy
 
 import numpy as np
 
@@ -58,7 +59,7 @@ def poly_mod(p: int, poly1: Iterable[int], poly2: Iterable[int], info=True):
     p2_str = print_poly(p2[::-1], info=False)
 
     if info:
-        logger.info(f"{p1_str} = ({p2_str}) * ({q_str}) + {r_str}")
+        logger.info(f"{p1_str} ≡ ({p2_str}) * ({q_str}) + {r_str}")
 
     return q[::-1], r[::-1]
 
@@ -87,6 +88,24 @@ def poly_mul(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable
     print_poly(r[::-1], "模之后为")
 
     return r[::-1]
+
+
+def poly_modular_exponentiation(p: int, poly1: List[int], e: int, poly2: List[int]):
+    """域 p 下计算 poly1^e % poly_mod"""
+    assert e >= 1
+
+    p1 = np.array(poly1[::-1], dtype=DTYPE)
+
+    max_len = max((len(poly1)-1)*e+1, len(poly2))
+
+    p1 = PolyRingModP(N=max_len*3, p=p, coefs=p1)
+    tmp_p = PolyRingModP(N=max_len*3, p=p, coefs=p1.coefs.copy())
+
+    for i in range(e-1):
+        tmp_p = tmp_p * p1
+        tmp_p = tmp_p % p
+
+    return poly_mod(p, tmp_p.coefs[::-1], poly2)
 
 
 def poly_reverse(p: int, poly1: Iterable[int], poly2: Iterable[int]):
@@ -140,7 +159,7 @@ class IrreduciblePolyModp:
 
         return degree <= 1
 
-    def generate_irreducible_poly(self, n):
+    def generate_irreducible_poly(self, n) -> None:
         """产生所有的 n 阶不可约多项式"""
         degree = 1
         while degree <= n:
@@ -187,14 +206,30 @@ class IrreduciblePolyModp:
         return True
 
 
+def is_generator(p: int, poly1: List[int], poly2: List[int]) -> bool:
+    """判断 poly1 是否是扩域 GF(p)/poly2 的生成元"""
+    assert IrreduciblePolyModp(p).is_irreducible_poly(tuple(poly2))
 
+    order = p ** (len(poly2)-1)
+    prime_factors = sorted(factor(order-1).keys())
+    logger.info(f"{order-1} 的素因子为：{', '.join(map(str, prime_factors))}")
+    exp_list = [(order-1) // prime_factor for prime_factor in prime_factors]
+
+    for exp in exp_list:
+        _, r = poly_modular_exponentiation(p, poly1, exp, poly2)
+        if len(r) == 1 and r[0] == 1:
+            logger.info(f"{print_poly(poly1, info=False)} 不是生成元")
+            return False
+
+    logger.info(f"{print_poly(poly1, info=False)} 是生成元")
+    return True
 
 
 # todo
 # 增加求所有的生成元
 
 if __name__ == '__main__':
-    test = IrreduciblePolyModp()
 
-    # print(test.is_irreducible_poly((1, 0, 0, 0, 1, 1, 0, 1, 1)))
-    print(test.is_irreducible_poly((1, 1, 0, 1, 1)))
+    p = [1, 0, 0, 0, 1, 1, 0, 1, 1]
+
+    is_generator(2, [1, 0], p)

@@ -1,6 +1,6 @@
 from utils import is_prime, logger, reverse_int
 
-from typing import Union, Tuple, Set
+from typing import Union, Tuple, Set, Optional
 
 
 def judge_by_euler_formula(a: int, p: int) -> bool:
@@ -59,9 +59,12 @@ class SquareRootModP:
         return t, s
 
     @staticmethod
-    def find_result(a: int, p: int) -> Set[int]:
+    def find_result(a: int, p: int) -> Optional[Set[int]]:
         """找出 x^2 ≡ a  (mod p) 的所有解"""
         assert is_prime(p)
+        if pow(a, (p-1) // 2, p) != 1:
+            logger.info(f"无解")
+            return
 
         t, s = SquareRootModP.divide_p_minus_one(p)
         logger.info(f"{p-1} = 2^{t} * {s}")
@@ -125,4 +128,4 @@ def jacobi(n, m):
 
 
 if __name__ == '__main__':
-    SquareRootModP.find_result(37, 101)
+    SquareRootModP.find_result(28, 37)

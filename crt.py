@@ -34,7 +34,7 @@ def crt(a_list: List[int], b_list: List[int], m_list: List[int]) -> int:
                 raise ValueError("m_i 必须互相互质")
 
     m = math.prod(m_list)
-    logger.info(f"M = {' * '.join(map(str, m_list))} = {m}")
+    logger.info(f"m = {' * '.join(map(str, m_list))} = {m}")
     upper_m_list = [m // i for i in m_list]
     logger.info(f"M_i: {upper_m_list}")
     upper_m_prime_list = [
@@ -48,7 +48,7 @@ def crt(a_list: List[int], b_list: List[int], m_list: List[int]) -> int:
         for i in range(len(b_list))
     ]) % m
 
-    logger.info(f"result: {result}")
+    logger.info(f"x ≡ {result} (mod {m})")
 
     return result
 
@@ -91,13 +91,24 @@ def poly_q_e(poly: List[int], q: int, e: int) -> int:
     return x_j
 
 
+def poly_by_enumerate(poly: List[int], m: int, info=True) -> List[int]:
+    """暴力枚举多项式在模 m 意义下的解"""
+    p = poly1d(poly)
+
+    result_list = []
+    for i in range(m):
+        if p(i) % m == 0:
+            result_list.append(i)
+
+    if info:
+        logger.info(f"多项式的所有解为：{', '.join(map(str, result_list))}")
+
+    return result_list
+
 
 if __name__ == '__main__':
-    poly_q_e(
-        [1, 0, 0, 7, 1],
-        3,
-        3
+    crt(
+        [1, 3, 4],
+        [2, 4, 3],
+        [9, 5, 7]
     )
-
-    crt([5, 87], [4, 16], [11, 61])
-
