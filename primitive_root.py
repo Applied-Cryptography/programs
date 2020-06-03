@@ -3,7 +3,6 @@ from utils import is_prime, factor, logger, reverse_int
 from math import gcd
 from typing import List, Dict, Optional
 
-import logging
 
 def find_one_primitive_root(p: int, info=True) -> int:
     """find one primitive_root of prime p"""

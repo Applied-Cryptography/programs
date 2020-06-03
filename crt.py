@@ -16,6 +16,11 @@ def crt(a_list: List[int], b_list: List[int], m_list: List[int]) -> int:
     """
     assert len(b_list) == len(m_list)
     assert len(a_list) == len(m_list)
+    # 每一个 m_i 必须互相互质
+    for i in range(len(m_list)):
+        for j in range(i+1, len(m_list)):
+            if math.gcd(m_list[i], m_list[j]) != 1:
+                raise ValueError("m_i 必须互相互质")
 
     # 化成 x 恒等 b_i  (mod m_i) 的标准形式
     for index, (a, m) in enumerate(zip(a_list, m_list)):
@@ -26,12 +31,6 @@ def crt(a_list: List[int], b_list: List[int], m_list: List[int]) -> int:
     logger.info("原方程的标准形式为：")
     for b, m in zip(b_list, m_list):
         logger.info(f"x ≡ {b}  (mod {m})")
-
-    # 每一个 m_i 必须互相互质
-    for i in range(len(m_list)):
-        for j in range(i+1, len(m_list)):
-            if math.gcd(m_list[i], m_list[j]) != 1:
-                raise ValueError("m_i 必须互相互质")
 
     m = math.prod(m_list)
     logger.info(f"m = {' * '.join(map(str, m_list))} = {m}")

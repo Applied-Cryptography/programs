@@ -91,7 +91,7 @@ def poly_mul(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable
 
 
 def poly_modular_exponentiation(p: int, poly1: List[int], e: int, poly2: List[int]):
-    """域 p 下计算 poly1^e % poly_mod"""
+    """域 p 下计算 poly1^e % poly2"""
     assert e >= 1
 
     p1 = np.array(poly1[::-1], dtype=DTYPE)
