@@ -94,17 +94,15 @@ def reverse_int(a: int, m: int) -> int:
     return extended_euclidean(a, m)[0] % m
 
 
-# todo
-# 不详细
-def exponentiation_by_squaring(b: int, e: int, m: int) -> int:
+def exponentiation_by_squaring(a: int, n: int, m: int) -> int:
     """calculate non-negative integer k that satisfies b^e = k (mod m)
 
     Description:
         This function implement exponentiation mod in chapter2
 
     Args:
-        b: the base integer
-        e: the exponent integer
+        a: the base integer
+        n: the exponent integer
         m: the modulus
 
     Returns:
@@ -121,20 +119,22 @@ def exponentiation_by_squaring(b: int, e: int, m: int) -> int:
         # the binary is expressed as a_0 + a_1*2 + ... + a_n*2^n
         return bin_array
 
-    bin_list = integer_to_binary(e)
+    bin_list = integer_to_binary(n)
+    logger.info(f"n 的二进制表示为： {''.join(map(str, bin_list[::-1]))}")
     # previously calculate b, b^2, b^4, ... in the case of module m
-    previous_b_list: list = [b % m]
+    previous_b_list: list = [a % m]
+    logger.info(f"b_0 = {previous_b_list[0]}")
     for i in range(len(bin_list) - 1):
         previous_b_list.append(previous_b_list[i] ** 2 % m)
+        logger.info(f"b_{i+1} = {previous_b_list[-1]}")
 
     # calculate k
-    k = b ** bin_list[0] % m
+    k = a ** bin_list[0] % m
+    logger.info(f"a_0 = b_0^{bin_list[0]} = {k}")
     for i in range(1, len(bin_list)):
         if bin_list[i] == 1:
             k = k * previous_b_list[i] % m
-    # debug
-    print(previous_b_list)
-    print(bin_list)
+        logger.info(f"a_{i} = a_{i-1} * b_{i}^{bin_list[i]} = {k}")
 
     return k
 
@@ -162,5 +162,5 @@ def factor(n: int) -> Dict[int, int]:
 
 
 if __name__ == '__main__':
-    print(factor(667))
+    print(exponentiation_by_squaring(113, 103, 143))
 

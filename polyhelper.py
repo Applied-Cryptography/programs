@@ -3,7 +3,6 @@ from utils import logger, factor
 
 from typing import Iterable, List, Tuple, Set
 from itertools import product
-from copy import copy
 
 import numpy as np
 
@@ -135,7 +134,6 @@ def poly_reverse(p: int, poly1: Iterable[int], poly2: Iterable[int]):
 class IrreduciblePolyModp:
     """GF(p) 下不可约多项式的判断"""
     def __init__(self, p=2):
-        # N 必须足够大(运算的多项式次数都在其之内)，保证对计算没有影响
         # 两个初始的不可约多项式 x, x+1
         self.p = p
         self.irreducible_dict = {

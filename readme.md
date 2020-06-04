@@ -15,6 +15,13 @@
   reverse_int(a: int, m: int) -> int
   ```
 
+- $a^n \quad (mod \; m)$
+
+  ```python
+  # 位于 utils.py
+  exponentiation_by_squaring(a: int, n: int, m: int) -> int
+  ```
+
 - $n$ 标准分解
 
   ```python
