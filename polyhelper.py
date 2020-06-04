@@ -3,6 +3,7 @@ from utils import logger, factor
 
 from typing import Iterable, List, Tuple, Set
 from itertools import product
+import math
 
 import numpy as np
 
@@ -223,11 +224,24 @@ def is_generator(p: int, poly1: List[int], poly2: List[int]) -> bool:
     return True
 
 
-# todo
-# 增加求所有的生成元
+def get_all_generator(p: int, poly1: List[int], poly2: List[int]):
+    # ploy1其中一个生成元，p不可约多项式
+    assert is_generator(p, poly1, poly2)
+    num = len(poly2)-1
+    num = p ** num - 1
+    for i in range(1, num):
+        if math.gcd(i, num) == 1:
+            poly_modular_exponentiation(p, poly1, i, poly2)
+
+
+# 求所有的n阶以下所有的不可约多项式
+def get_all_irreducible_poly(p: int, n: int):
+    IrreduciblePolyModp(p).generate_irreducible_poly(n)
 
 if __name__ == '__main__':
 
     p = [1, 0, 0, 0, 1, 1, 0, 1, 1]
+    a =[1, 1, 0, 0, 0, 0, 0, 1]
 
-    is_generator(2, [1, 0], p)
+    # get_all_generator(2, [1, 1], p)
+    get_all_irreducible_poly(2, 4)

@@ -156,10 +156,22 @@
   IrreduciblePolyModp(p).is_irreducible_poly(self, poly: Tuple) -> bool
   ```
 
+- 求域 $p$ 下 $n$ 阶之内的所有不可约多项式
+
+  ```python
+  get_all_irreducible_poly(p: int, n: int)
+  ```
+  
 - 判断 $poly1$ 是否是扩域 $F_p[x]/poly2$ 的生成元
 
   ```python
   is_generator(p: int, poly1: List[int], poly2: List[int]) -> bool
+  ```
+
+- 扩域 $F_p[x]/poly2$，已知生成元 $poly1$，求所有的生成元
+
+  ```python
+  get_all_generator(p: int, poly1: List[int], poly2: List[int])
   ```
 
 
