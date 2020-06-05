@@ -83,7 +83,7 @@ def poly_q_e(poly: List[int], q: int, e: int) -> int:
     while j < e:
         t_j = ((-p(x_j) // (q ** j)) * p_derivative_i_reverse) % q
         x_j = (x_j + t_j * (q ** j)) % (q ** (j+1))
-        logger.info(f"t_{j+1} = {t_j}, x_{j+1} ≡ {x_j}  (mod {q**(j+1)})")
+        logger.info(f"t_{j} = {t_j}, x_{j+1} ≡ {x_j}  (mod {q**(j+1)})")
 
         j += 1
 
@@ -106,8 +106,6 @@ def poly_by_enumerate(poly: List[int], m: int, info=True) -> List[int]:
 
 
 if __name__ == '__main__':
-    crt(
-        [1, 3, 4],
-        [2, 4, 3],
-        [9, 5, 7]
-    )
+    poly_q_e([1, 0, 0, 7, 4],
+             3,
+             5)

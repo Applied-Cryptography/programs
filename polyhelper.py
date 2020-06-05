@@ -1,7 +1,7 @@
 from poly import PolyRingModP, DTYPE
 from utils import logger, factor
 
-from typing import Iterable, List, Tuple, Set
+from typing import Iterable, List, Tuple, Set, Optional
 from itertools import product
 import math
 
@@ -64,7 +64,34 @@ def poly_mod(p: int, poly1: Iterable[int], poly2: Iterable[int], info=True):
     return q[::-1], r[::-1]
 
 
-def poly_mul(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable[int]):
+def poly_add(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable[int], info=True):
+    """域 p 下计算 poly1 * poly2 % poly3"""
+    p1 = np.array(poly1[::-1], dtype=DTYPE)
+    p2 = np.array(poly2[::-1], dtype=DTYPE)
+    p3 = np.array(poly3[::-1], dtype=DTYPE)
+
+    max_len = max(map(len, [p1, p2]))
+
+    # 这里不需要 N
+    p1 = PolyRingModP(N=max_len*3, p=p, coefs=p1)
+    p2 = PolyRingModP(N=max_len*3, p=p, coefs=p2)
+
+    add = p1 + p2
+    add_result = print_poly(add.coefs[::-1], "原和为", info=info)
+    q, r = PolyRingModP.div(p, add.coefs, p3)
+    q_result = print_poly(q[::-1], info=False)
+    r_result = print_poly(r[::-1], info=False)
+    p3_result = print_poly(p3[::-1], info=False)
+
+    if info:
+        logger.info(f"{add_result} = ({q_result}) * ({p3_result}) + {r_result}")
+
+    print_poly(r[::-1], "模之后为", info=info)
+
+    return r[::-1]
+
+
+def poly_mul(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable[int], info=True):
     """域 p 下计算 poly1 * poly2 % poly3"""
     p1 = np.array(poly1[::-1], dtype=DTYPE)
     p2 = np.array(poly2[::-1], dtype=DTYPE)
@@ -77,15 +104,16 @@ def poly_mul(p: int, poly1: Iterable[int], poly2: Iterable[int], poly3: Iterable
     p2 = PolyRingModP(N=max_len*3, p=p, coefs=p2)
 
     mul = p1 * p2
-    mul_result = print_poly(mul.coefs[::-1], "原乘积为")
+    mul_result = print_poly(mul.coefs[::-1], "原乘积为", info=info)
     q, r = PolyRingModP.div(p, mul.coefs, p3)
     q_result = print_poly(q[::-1], info=False)
     r_result = print_poly(r[::-1], info=False)
     p3_result = print_poly(p3[::-1], info=False)
 
-    logger.info(f"{mul_result} = ({q_result}) * ({p3_result}) + {r_result}")
+    if info:
+        logger.info(f"{mul_result} = ({q_result}) * ({p3_result}) + {r_result}")
 
-    print_poly(r[::-1], "模之后为")
+    print_poly(r[::-1], "模之后为", info=info)
 
     return r[::-1]
 
@@ -158,7 +186,7 @@ class IrreduciblePolyModp:
 
         return degree <= 1
 
-    def generate_irreducible_poly(self, n) -> None:
+    def generate_irreducible_poly(self, n, info=True) -> None:
         """产生所有的 n 阶不可约多项式"""
         degree = 1
         while degree <= n:
@@ -181,7 +209,8 @@ class IrreduciblePolyModp:
                     if not is_irreducible:
                         break
                 if is_irreducible:
-                    print_poly(poly, "不可约多项式")
+                    if info:
+                        print_poly(poly, "不可约多项式")
                     try:
                         self.irreducible_dict[degree].add(poly)
                     except KeyError:
@@ -238,10 +267,84 @@ def get_all_generator(p: int, poly1: List[int], poly2: List[int]):
 def get_all_irreducible_poly(p: int, n: int):
     IrreduciblePolyModp(p).generate_irreducible_poly(n)
 
+
+def construct_gf_n(n: int, k_irreducible_poly: List[int] = None, int_mode=True) -> None:
+    """构造 GF(n)"""
+    from prettytable import PrettyTable
+    pt = PrettyTable()
+
+    def poly_to_integer(p: int, _poly: List[int]):
+        degree = len(_poly) - 1
+        to_integer: int = 0
+        for j in range(degree+1):
+            to_integer += p ** (degree-j) * _poly[j]
+
+        return to_integer
+
+    factor_dict = factor(n)
+    factor_keys = list(factor_dict.keys())
+    assert len(factor_keys) == 1
+
+    p = factor_keys[0]
+    k = factor_dict[p]
+
+    if not k_irreducible_poly:
+        # 找一个 k 次不可约多项式
+        irreducible_poly_helper = IrreduciblePolyModp(p)
+        irreducible_poly_helper.generate_irreducible_poly(k, info=False)
+        k_irreducible_poly = sorted(list(irreducible_poly_helper.irreducible_dict[k]))[0]
+        # 清空原来的不可约多项式集合
+        irreducible_poly_helper.irreducible_dict = dict()
+        irreducible_poly_helper.is_irreducible_poly(k_irreducible_poly)
+    else:
+        assert len(k_irreducible_poly) == k+1
+
+    print_poly(k_irreducible_poly, f"{k} 次不可约多项式:")
+
+    # 表头元素
+    table_header = []
+    for poly in product(range(p), repeat=k):
+        table_header.append(poly)
+    if int_mode:
+        columns = [""] + (list(map(lambda x: str(poly_to_integer(p, x)), table_header)))
+    else:
+        columns = [""] + list(map(lambda x: print_poly(x, info=False), table_header))
+    pt.field_names = columns
+
+    logger.info("=" * 100)
+    logger.info("加法表为：")
+    for i, poly in enumerate(table_header):
+        row = [poly]
+        for addend_poly in table_header:
+            row.append(poly_add(p, poly, addend_poly, k_irreducible_poly, info=False))
+        if int_mode:
+            pt.add_row(list(map(lambda x: poly_to_integer(p, x), row)))
+        else:
+            pt.add_row(list(map(lambda x: print_poly(x, info=False), row)))
+    logger.info(pt)
+
+    # 清除行
+    for i in range(len(table_header)-1, -1, -1):
+        pt.del_row(i)
+
+    # 复制一遍算了
+    logger.info("=" * 100)
+    logger.info("乘法表为：")
+    for i, poly in enumerate(table_header):
+        row = [poly]
+        for multiplicand_poly in table_header:
+            row.append(poly_mul(p, poly, multiplicand_poly, k_irreducible_poly, info=False))
+        if int_mode:
+            pt.add_row(list(map(lambda x: poly_to_integer(p, x), row)))
+        else:
+            pt.add_row(list(map(lambda x: print_poly(x, info=False), row)))
+
+    logger.info(pt)
+
+
+
+
 if __name__ == '__main__':
+    construct_gf_n(8)
 
-    p = [1, 0, 0, 0, 1, 1, 0, 1, 1]
-    a =[1, 1, 0, 0, 0, 0, 0, 1]
-
-    # get_all_generator(2, [1, 1], p)
-    get_all_irreducible_poly(2, 4)
+    construct_gf_n(4, [1, 1, 1], int_mode=False)
