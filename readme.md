@@ -174,7 +174,13 @@
   get_all_generator(p: int, poly1: List[int], poly2: List[int])
   ```
 
+- 构造 $GF(n)$
 
+  ```python
+  construct_gf_n(n: int, k_irreducible_poly: List[int] = None, int_mode=True)
+  ```
+
+  
 
 ### 椭圆曲线
 
